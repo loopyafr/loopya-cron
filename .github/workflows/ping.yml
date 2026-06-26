@@ -15,9 +15,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping loopya-feed-cron
+        env:
+          SECRET: ${{ secrets.CRON_SECRET }}
         run: |
+          if [ -z "$SECRET" ]; then
+            echo "::warning::CRON_SECRET pas encore configuré (Settings → Secrets → Actions). On saute."
+            exit 0
+          fi
           code=$(curl -s -m 60 -o /dev/null -w "%{http_code}" \
-            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -H "x-cron-secret: $SECRET" \
             "https://loopya.fr/api/loopya-feed-cron")
           echo "loopya-feed-cron -> HTTP $code"
           test "$code" = "200"
