@@ -1,0 +1,23 @@
+name: keepalive
+# GitHub met en pause les workflows planifiés après 60 jours SANS activité (commit)
+# sur le repo. Ce job pousse un commit vide 2×/mois pour garder le pinger vivant.
+
+on:
+  schedule:
+    - cron: '17 4 1,15 * *'   # le 1er et le 15 de chaque mois
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Empty keepalive commit
+        run: |
+          git config user.name "loopya-keepalive"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "keepalive $(date -u +%F)"
+          git push

@@ -1,0 +1,23 @@
+name: ping-loopya-feed
+# Pingue loopya-feed-cron toutes les 15 min.
+# Pourquoi : le feed v-tools plafonne à 100 annonces ; à plus de 100 annonces/h
+# sa fenêtre se vide en moins d'1 h → un poll horaire en rate. On poll plus souvent.
+# (GitHub Actions est gratuit et illimité sur un repo PUBLIC. Les schedules peuvent
+#  être décalés de quelques minutes en cas de charge — sans gravité ici.)
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # toutes les 15 minutes
+  workflow_dispatch:          # + bouton « Run workflow » pour tester à la main
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping loopya-feed-cron
+        run: |
+          code=$(curl -s -m 60 -o /dev/null -w "%{http_code}" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            "https://loopya.fr/api/loopya-feed-cron")
+          echo "loopya-feed-cron -> HTTP $code"
+          test "$code" = "200"
